@@ -124,14 +124,14 @@ router.delete("/produtos/:id", async (req, res) =>{
         const produtoExistente = await Produto.findByIdAndRemove(id);
     
         if (produtoExistente) {
-          res.json({ message: "Produto excluído." });
+            res.json({ message: "Produto excluído." });
         } else {
-          res.status(404).json({ message: "Produto não encontrada." });
+            res.status(404).json({ message: "Produto não encontrado." });
         }
-      } catch (err) {
+        } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Um erro aconteceu." });
-      }
+        }
 
 });
 
