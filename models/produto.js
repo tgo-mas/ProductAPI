@@ -1,4 +1,16 @@
 const {model, Schema} = require("mongoose");
+const Joi = require("joi");
+
+const produtoSchema = Joi.object({
+    nome: Joi.string().required(),
+    descricao: Joi.string().required(),
+    quantidade: Joi.number().integer().min(0).required(), 
+    preco: Joi.number().precision(2).min(0).required(),
+    desconto: Joi.number().integer().min(0).max(100).default(0),
+    dataDesconto: Joi.date().iso().required(),
+    categoria: Joi.string().required(),
+    imagemProduto: Joi.string().uri().optional()
+})
 
 const Produto = model("produto",
 new Schema({
@@ -51,4 +63,7 @@ new Schema({
 })
 );
 
-module.exports= Produto;
+module.exports=  {
+    Produto,
+    produtoSchema
+}

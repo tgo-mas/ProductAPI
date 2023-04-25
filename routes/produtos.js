@@ -1,18 +1,7 @@
 const { Router, application } = require("express");
-const Produto = require("../models/produto")
+const { Produto } = require("../models/produto")
 const router = Router();
-const Joi = require("joi");
-
-const produtoSchema = Joi.object({
-    nome: Joi.string().required(),
-    descricao: Joi.string().required(),
-    quantidade: Joi.number().integer().min(0).required(),
-    preco: Joi.number().precision(2).min(0).required(),
-    desconto: Joi.number().integer().min(0).max(100).default(0),
-    dataDesconto: Joi.date().iso().required(),
-    categoria: Joi.string().required(),
-    imagemProduto: Joi.string().uri().optional()
-});
+const { produtoSchema } = require("../models/produto")
 
 // Atualização do Produto (PUT)
 router.put("/produtos/:id", async (req, res) => {
