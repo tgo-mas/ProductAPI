@@ -2,6 +2,19 @@ const { Router, application } = require("express");
 const { Produto } = require("../models/produto")
 const router = Router();
 const { produtoSchema } = require("../models/produto")
+const multer = require("multer");
+
+// Configuração de armazenamento
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split(".")[1])
+    }
+});
+
+const upload = multer({ storage });
 
 // Atualização do Produto (PUT)
 router.put("/produtos/:id", async (req, res) => {
@@ -30,8 +43,8 @@ router.put("/produtos/:id", async (req, res) => {
 });
 
 // Rota POST:
-router.post("/produtos", async (req, res) => {
-    const { nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto } = req.body;
+router.post("/produtos", upload.single("imagemProduto"), async (req, res) => {
+    const { nome, descricao, quantidade, preco, desconto, dataDesconto, categoria } = req.body;
     // Validação dos dados:
     if (!nome) {
         res.status(400).json({ message: "O nome do produto é obrigatório." });
@@ -43,15 +56,14 @@ router.post("/produtos", async (req, res) => {
         res.status(400).json({ message: "O preço do produto é obrigatório e deve ser um número." });
     } else if (!categoria) {
         res.status(400).json({ message: "A categoria do produto é obrigatória." });
-    } else if (!imagemProduto) {
-        res.status(400).json({ message: "A imagem do produto é obrigatória." });
     } else {
         try {
             // Criando um novo doc
-            const produto = new Produto({ nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto })
-            // Inserir
+            const produto = new Produto({ nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto: req.file.filename});
+            console.log(req.file.filename);
             await produto.save();
-            res.status(201).json(produto);
+            res.json(produto);
+
         } catch (err) {
             console.log(err);
             res.status(500).json({ message: "Não foi possível criar produto." })
@@ -117,21 +129,21 @@ router.get("/produtos/:id", async (req, res) => {
 });
 
 // Deletar um produto
-router.delete("/produtos/:id", async (req, res) =>{
+router.delete("/produtos/:id", async (req, res) => {
     try {
         // Checa se a tarefa existe, e então remove do banco
         const { id } = req.params;
         const produtoExistente = await Produto.findByIdAndRemove(id);
-    
+
         if (produtoExistente) {
             res.json({ message: "Produto excluído." });
         } else {
-            res.status(404).json({ message: "Produto não encontrado." });
+            res.status(404).json({ message: "Produto não encontrada." });
         }
-        } catch (err) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Um erro aconteceu." });
-        }
+    }
 
 });
 
