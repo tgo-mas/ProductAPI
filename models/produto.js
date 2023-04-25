@@ -57,8 +57,7 @@ new Schema({
 
     imagemProduto: {
         type: String,
-        required: true
-
+        required: true,
     }
 })
 );
