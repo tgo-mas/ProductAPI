@@ -40,8 +40,6 @@ router.put("/produtos/:id", async (req, res) => {
     }
 });
 
-
-
 // Rota POST:
 router.post("/produtos", async (req, res) => {
     const { nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto } = req.body;
@@ -127,6 +125,25 @@ router.get("/produtos/:id", async (req, res) => {
         console.log(err);
         res.status(500).json(`Um erro aconteceu: ${err.message}`);
     }
+});
+
+// Deletar um produto
+router.delete("/produtos/:id", async (req, res) =>{
+    try {
+        // Checa se a tarefa existe, e então remove do banco
+        const { id } = req.params;
+        const produtoExistente = await Produto.findByIdAndRemove(id);
+    
+        if (produtoExistente) {
+          res.json({ message: "Produto excluído." });
+        } else {
+          res.status(404).json({ message: "Produto não encontrada." });
+        }
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Um erro aconteceu." });
+      }
+
 });
 
 module.exports = router;
