@@ -6,61 +6,59 @@ const Joi = require("joi");
 const produtoSchema = Joi.object({
     nome: Joi.string().required(),
     descricao: Joi.string().required(),
-    quantidade: Joi.number().integer().min(0).required(), 
+    quantidade: Joi.number().integer().min(0).required(),
     preco: Joi.number().precision(2).min(0).required(),
     desconto: Joi.number().integer().min(0).max(100).default(0),
     dataDesconto: Joi.date().iso().required(),
     categoria: Joi.string().required(),
     imagemProduto: Joi.string().uri().optional()
-})
-
-
-
+});
 
 // Atualização do Produto (PUT)
 router.put("/produtos/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { error, value } = produtoSchema.validate(req.body);
-        
-        if(error) {
+
+        if (error) {
             const campoErro = error.details[0].context.label;
             const erroMensagem = error.details[0].message;
-            return res.status(400).json({ 
-                message: `Erro de validação no campo: ${campoErro}: ${erroMensagem}`});
+            return res.status(400).json({
+                message: `Erro de validação no campo: ${campoErro}: ${erroMensagem}`
+            });
         }
 
         const produtoExistente = await Produto.findByIdAndUpdate(id, value);
 
         if (!produtoExistente) {
             return res.status(404).json({ error: "Produto não encontrado." });
-        } 
+        }
         res.json({ message: "Produto editado com sucesso." });
     } catch (err) {
         console.log(err);
         res.status(500).json({ error: "Um erro aconteceu." });
     }
-    });
+});
 
 
 
 // Rota POST:
-router.post("/produtos", async(req, res) => {
+router.post("/produtos", async (req, res) => {
     const { nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto } = req.body;
     // Validação dos dados:
     if (!nome) {
         res.status(400).json({ message: "O nome do produto é obrigatório." });
-    }else if (!descricao) {
+    } else if (!descricao) {
         res.status(400).json({ message: "A descrição do produto é obrigatória." });
-    }else if (!quantidade || isNaN(quantidade)) {
+    } else if (!quantidade || isNaN(quantidade)) {
         res.status(400).json({ message: "A quantidade do produto é obrigatória e deve ser um número." });
-    }else if (!preco || isNaN(preco)) {
+    } else if (!preco || isNaN(preco)) {
         res.status(400).json({ message: "O preço do produto é obrigatório e deve ser um número." });
-    }else if (!categoria) {
+    } else if (!categoria) {
         res.status(400).json({ message: "A categoria do produto é obrigatória." });
-    }else if (!imagemProduto) {
+    } else if (!imagemProduto) {
         res.status(400).json({ message: "A imagem do produto é obrigatória." });
-    }else {
+    } else {
         try {
             // Criando um novo doc
             const produto = new Produto({ nome, descricao, quantidade, preco, desconto, dataDesconto, categoria, imagemProduto })
@@ -78,57 +76,57 @@ router.post("/produtos", async(req, res) => {
 router.get("/produtos", async (req, res) => {
     const { nome, qtd, categoria, preco, dataDesconto } = req.query;
     const all = await Produto.find();
-    const resFinal = all;
+    let resFinal = all;
 
-    if(nome){
+    if (nome) {
         resFinal = resFinal.filter(
-            (obj) => obj.nome === nome
+            (obj) => obj.nome.includes(nome)
         );
     }
 
-    if(qtd){
+    if (qtd) {
         resFinal = resFinal.filter(
             (obj) => obj.quantidade === qtd
         );
     }
 
-    if(categoria){
+    if (categoria) {
         resFinal = resFinal.filter(
             (obj) => obj.categoria === categoria
         );
     }
 
-    if(preco){
+    if (preco) {
         resFinal = resFinal.filter(
             (obj) => obj.preco === preco
         );
     }
 
-    if(dataDesconto){
+    if (dataDesconto) {
         resFinal = resFinal.filter(
             (obj) => obj.dataDesconto === dataDesconto
         );
     }
 
-    res.json(response);
+    res.json(resFinal);
 });
 
 router.get("/produtos/:id", async (req, res) => {
-    try{
-        const { id } = req.params();
+    try {
+        const { id } = req.params;
 
-        const produto = Produto.findById(id);
+        const produto = await Produto.findById(id);
 
-        if(produto){
+        if (produto) {
             res.json(produto);
-        }else{
+        } else {
             res.status(404).json("Produto não encontrado!");
         }
 
-    }catch(err){
+    } catch (err) {
         console.log(err);
         res.status(500).json(`Um erro aconteceu: ${err.message}`);
     }
 });
 
-module.exports= router;
+module.exports = router;
